@@ -1,30 +1,109 @@
-# -*- coding: utf-8 -*-
-import click
-import logging
+"""
+make_dataset
+"""
+
 from pathlib import Path
-from dotenv import find_dotenv, load_dotenv
+from typing import List, Dict, Tuple, Sequence
+import numpy as np
+import pandas as pd
 
 
-@click.command()
-@click.argument('input_filepath', type=click.Path(exists=True))
-@click.argument('output_filepath', type=click.Path())
-def main(input_filepath, output_filepath):
-    """ Runs data processing scripts to turn raw data from (../raw) into
-        cleaned data ready to be analyzed (saved in ../processed).
+def import_data(fpath: Path) -> pd.DataFrame:
+    """Import the MiniBooNE data text file
+
+    Args:
+        fpath: path to the text file
+
+    Returns:
+        DataFrame
+
     """
-    logger = logging.getLogger(__name__)
-    logger.info('making final data set from raw data')
+    if fpath.suffix != ".txt":
+        raise TypeError("Please ensure the file is a text file!")
+
+    if not fpath.exists():
+        raise FileNotFoundError("{0} does not exist!".format(fpath.resolve()))
+
+    with open(fpath, "r") as fstream:
+        return pd.read_csv(fstream
+                           ,delim_whitespace=True
+                           ,skiprows=1
+                           ,header=None)
 
 
-if __name__ == '__main__':
-    log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    logging.basicConfig(level=logging.INFO, format=log_fmt)
+def get_column_names(df: pd.DataFrame) -> List[str]:
+    """Get number of particles from the DataFrame, and return a list of column names
 
-    # not used in this stub but often useful for finding various files
-    project_dir = Path(__file__).resolve().parents[2]
+    Args:
+        df: DataFrame
 
-    # find .env automagically by walking up directories until it's found, then
-    # load up the .env entries as environment variables
-    load_dotenv(find_dotenv())
+    Returns:
+        List of columns (e.g. PID_xx)
 
-    main()
+    """
+    c = df.shape[1]
+
+    if c <= 0:
+        raise IndexError("Please ensure the DataFrame isn't empty!")
+
+    return ["PID_{0}".format(x+1) for x in range(c)]
+
+
+def get_num_neutrinos(fpath: Path) -> Tuple[int, int]:
+    """Get the number of neutrinos (both electrons and muons) from the MiniBooNE data text file
+
+    Args:
+        fpath: path to the text file
+
+    Returns:
+        Tuple of (num_electron, num_muon)
+
+    """
+    if fpath.suffix != ".txt":
+        raise TypeError("Please ensure the file is a text file!")
+
+    if not fpath.exists():
+        raise FileNotFoundError("{0} does not exist!".format(fpath.resolve()))
+
+    with open(fpath, "r") as fstream:
+        line = open("../data/external/MiniBooNE_PID.txt").readline().split()
+
+    try:
+        num_electron = int(line[0])
+        num_muon = int(line[1])
+    except ValueError:
+        raise ValueError("Please ensure the first line contains two integers!")
+
+    print("% of electrons: {0:.3%}".format(num_electron/(num_electron + num_muon)))
+    return num_electron, num_muon
+
+
+def add_target_column(df: pd.DataFrame, num_electron: int, num_muon: int) -> pd.DataFrame:
+    """Assign target column to the given DataFrame, based on the number of neutrinos given
+
+    Args:
+        df: DataFrame of the data
+        num_electron: number of electrons
+        num_muon: number of muons
+
+    Returns:
+        DataFrame with "target" column added
+    """
+    if 'target' in df.columns:
+        raise Exception("'target' column already exists.")
+
+    if num_electron + num_muon != df.shape[0]:
+        raise Exception("Row numbers do not match!\nRows:{0:,}\nElectrons:{1:,}\nMuons:{2:,}"
+                        .format(df.shape[0], num_electron, num_muon))
+
+    # Initialize with NULL values
+    df['target'] = np.nan
+
+    # Assign values
+    df['target'][:num_electron] = 1
+    df['target'][num_electron:] = 0
+
+    # Downcast to int8
+    df['target'] = pd.to_numeric(df['target'], downcast='integer')
+
+    return df
