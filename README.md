@@ -1,7 +1,26 @@
-MiniBooNE_ML
+MiniBooNE Machine Learning
 ==============================
 
 Capstone project for SCS3253 UoT Machine Learning Winter 2019
+- Problem statement: https://archive.ics.uci.edu/ml/datasets/MiniBooNE+particle+identification
+
+We will be training, optimizing and comparing the out-of-sample performance of two models:
+- Neutral network (Multilayer Perceptron) using Keras
+- Random Forest using scikit-learn
+
+Checklist
+------------
+- [x] Data import
+- [x] Data exploration
+- [ ] Feature engineering
+- [x] Outlier detection
+- [x] Dimensionality reduction
+- [ ] Complete data cleaning pipeline
+- [ ] Random Forest Classifier
+- [ ] AdaBoost Classifier
+- [ ] XGBoost Classifier
+- [ ] MLP
+- [ ] Model comparison
 
 Project Organization
 ------------
