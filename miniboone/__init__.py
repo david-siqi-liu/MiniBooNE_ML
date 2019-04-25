@@ -1,10 +1,9 @@
 import logging
 
-from miniboone.data.make_dataset import *
-from miniboone.data.preprocessing import *
-from miniboone.features.build_features import *
-from miniboone.models.predict_model import *
-from miniboone.models.train_model import *
-from miniboone.visualization.visualize import *
+from miniboone.build_features import *
+from miniboone.make_dataset import *
+from miniboone.preprocessing import *
+from miniboone.train_model import *
+from miniboone.visualize import *
 
 log = logging.getLogger(__name__)
