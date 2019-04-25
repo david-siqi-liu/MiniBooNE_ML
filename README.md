@@ -29,16 +29,10 @@ git clone https://github.com/david-siqi-liu/miniboone.git
 - Create an environment from `environment.yml`
 ```bash
 conda env create -f environment.yml
-
-conda list
 ```
 - Activate environment
 ```bash
 conda activate miniboone
-```
-- Setup
-```bash
-python setup.py install
 ```
 
 Exploration Work
